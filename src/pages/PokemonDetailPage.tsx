@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Button } from '@/components/ui/button';
@@ -19,6 +20,13 @@ import { ArrowLeft } from 'lucide-react';
 
 export function PokemonDetailPage() {
   const { idOrName = '' } = useParams<{ idOrName: string }>();
+
+  // Smooth scroll to top when navigating across evolution stages or prev/next Pokémon
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [idOrName]);
 
   // Fetch core Pokémon detail
   const {

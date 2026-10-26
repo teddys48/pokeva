@@ -92,8 +92,8 @@ export function PokemonGrid({
       role="region"
       aria-label="Pokédex catalogue"
     >
-      {pokemonList.map((pokemon) => (
-        <PokemonCard key={pokemon.id} pokemon={pokemon} />
+      {pokemonList.map((pokemon, index) => (
+        <PokemonCard key={pokemon.id} pokemon={pokemon} priority={index < 8} />
       ))}
     </div>
   );

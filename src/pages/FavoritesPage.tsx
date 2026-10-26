@@ -253,8 +253,8 @@ export function FavoritesPage() {
                 role="region"
                 aria-label="Favorite Pokémon collection"
               >
-                {resolvedList.map((pokemon) => (
-                  <PokemonCard key={pokemon.id} pokemon={pokemon} />
+                {resolvedList.map((pokemon, index) => (
+                  <PokemonCard key={pokemon.id} pokemon={pokemon} priority={index < 8} />
                 ))}
               </div>
             )}

@@ -1,4 +1,3 @@
-import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -12,6 +11,7 @@ import {
 import { formatPokemonId } from '@/lib/utils';
 import { cn } from '@/lib/utils';
 import { GitFork, ArrowRight, ArrowDown, Sparkles, CheckCircle2 } from 'lucide-react';
+import { usePokemonImage } from '@/features/pokemon/usePokemonImage';
 
 interface EvolutionCardProps {
   node: EvolutionTreeNode;
@@ -19,25 +19,18 @@ interface EvolutionCardProps {
 }
 
 function EvolutionCard({ node, isCurrent }: EvolutionCardProps) {
-  const [imageError, setImageError] = useState(false);
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [currentImgSrc, setCurrentImgSrc] = useState(node.artworkUrl || node.spriteUrl);
-
-  // Synchronize image when node changes
-  useEffect(() => {
-    setCurrentImgSrc(node.artworkUrl || node.spriteUrl);
-    setIsLoaded(false);
-    setImageError(false);
-  }, [node.speciesId, node.speciesName, node.artworkUrl, node.spriteUrl]);
-
-  const handleImageError = () => {
-    if (currentImgSrc !== node.spriteUrl && node.spriteUrl) {
-      setCurrentImgSrc(node.spriteUrl);
-    } else {
-      setImageError(true);
-      setIsLoaded(true);
-    }
-  };
+  const {
+    currentImgSrc,
+    isLoaded,
+    imageError,
+    imgRef,
+    onLoad,
+    onError,
+  } = usePokemonImage({
+    primarySrc: node.artworkUrl,
+    fallbackSrc: node.spriteUrl,
+    identifier: node.speciesId ?? node.speciesName,
+  });
 
   const formattedId = node.speciesId ? formatPokemonId(node.speciesId) : '';
 
@@ -69,14 +62,15 @@ function EvolutionCard({ node, isCurrent }: EvolutionCardProps) {
 
         {!imageError ? (
           <img
+            ref={imgRef}
             src={currentImgSrc}
             alt={node.displayName}
             width={96}
             height={96}
             loading="lazy"
             decoding="async"
-            onLoad={() => setIsLoaded(true)}
-            onError={handleImageError}
+            onLoad={onLoad}
+            onError={onError}
             className={cn(
               'relative z-10 h-20 w-20 sm:h-24 sm:w-24 object-contain transition-transform duration-200 group-hover:scale-105',
               isLoaded ? 'opacity-100' : 'opacity-0'
@@ -142,9 +136,9 @@ export function PokemonEvolutionChain({
   currentPokemonId,
   currentPokemonName,
 }: PokemonEvolutionChainProps) {
-  const { data: rawChain, isLoading, isError } = useEvolutionChain(evolutionChainUrl);
+  const { data: rawChain, isLoading, isError } = useEvolutionChain(evolutionChainUrl || '');
 
-  const tree = rawChain ? parseEvolutionChain(rawChain) : null;
+  const tree = rawChain?.chain ? parseEvolutionChain(rawChain.chain) : null;
   const isMultiStage = tree ? hasEvolutions(tree) : false;
 
   if (isLoading) {
@@ -206,7 +200,7 @@ export function PokemonEvolutionChain({
                 key={child.speciesName}
                 className="flex flex-col md:flex-row items-center gap-3"
               >
-                <EvolutionConditionBadge conditions={child.evolutionDetails} />
+                <EvolutionConditionBadge conditions={child.conditions} />
                 {renderEvolutionBranch(child)}
               </div>
             ))}

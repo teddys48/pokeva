@@ -1,4 +1,3 @@
-import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Pokemon } from '@/types/pokemon';
 import { Badge } from '@/components/ui/badge';
@@ -7,38 +6,30 @@ import { getTypeStyle } from '@/styles/typeColors';
 import { cn } from '@/lib/utils';
 import { Shield, Zap, Sparkles, ArrowUpRight } from 'lucide-react';
 import { FavoriteButton } from '@/features/favorites/FavoriteButton';
+import { usePokemonImage } from './usePokemonImage';
 
-interface PokemonCardProps {
+export interface PokemonCardProps {
   pokemon: Pokemon;
   className?: string;
+  priority?: boolean;
 }
 
-export function PokemonCard({ pokemon, className }: PokemonCardProps) {
-  const [imageError, setImageError] = useState(false);
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [currentImgSrc, setCurrentImgSrc] = useState(
-    pokemon.artworkUrl || pokemon.imageUrl
-  );
-
-  // Synchronize image state if pokemon prop updates
-  useEffect(() => {
-    setCurrentImgSrc(pokemon.artworkUrl || pokemon.imageUrl);
-    setIsLoaded(false);
-    setImageError(false);
-  }, [pokemon.id, pokemon.artworkUrl, pokemon.imageUrl]);
+export function PokemonCard({ pokemon, className, priority = false }: PokemonCardProps) {
+  const {
+    currentImgSrc,
+    isLoaded,
+    imageError,
+    imgRef,
+    onLoad,
+    onError,
+  } = usePokemonImage({
+    primarySrc: pokemon.artworkUrl,
+    fallbackSrc: pokemon.imageUrl,
+    identifier: pokemon.id,
+  });
 
   const primaryType = pokemon.types[0] || 'normal';
   const typeStyle = getTypeStyle(primaryType);
-
-  const handleImageError = () => {
-    // If the high-res artwork fails, try the fallback sprite
-    if (currentImgSrc !== pokemon.imageUrl && pokemon.imageUrl) {
-      setCurrentImgSrc(pokemon.imageUrl);
-    } else {
-      setImageError(true);
-      setIsLoaded(true);
-    }
-  };
 
   return (
     <Link
@@ -88,7 +79,7 @@ export function PokemonCard({ pokemon, className }: PokemonCardProps) {
         <div
           className="absolute inset-0 opacity-15 dark:opacity-25 transition-opacity group-hover:opacity-30"
           style={{
-            background: `radial-gradient(circle at center, ${typeStyle.bgHex} 0%, transparent 70%)`,
+            background: `radial-gradient(circle at center, ${typeStyle.bgHex} 0%, transparent 70%)` as string,
           }}
           aria-hidden="true"
         />
@@ -103,14 +94,16 @@ export function PokemonCard({ pokemon, className }: PokemonCardProps) {
         {/* Pokémon Official Artwork with Sprite Fallback */}
         {!imageError ? (
           <img
+            ref={imgRef}
             src={currentImgSrc}
             alt={pokemon.displayName}
-            loading="lazy"
+            loading={priority ? 'eager' : 'lazy'}
+            fetchPriority={priority ? 'high' : 'auto'}
             decoding="async"
             width={180}
             height={180}
-            onLoad={() => setIsLoaded(true)}
-            onError={handleImageError}
+            onLoad={onLoad}
+            onError={onError}
             className={cn(
               'relative z-10 h-36 w-36 object-contain drop-shadow-md transition-all duration-300 group-hover:scale-105',
               isLoaded ? 'opacity-100' : 'opacity-0'

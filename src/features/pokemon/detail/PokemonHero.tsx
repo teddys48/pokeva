@@ -1,4 +1,3 @@
-import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Pokemon } from '@/types/pokemon';
 import { PokeApiSpecies } from '@/types/pokeapi';
@@ -9,6 +8,7 @@ import { getTypeStyle } from '@/styles/typeColors';
 import { cn } from '@/lib/utils';
 import { ArrowLeft, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
 import { FavoriteButton } from '@/features/favorites/FavoriteButton';
+import { usePokemonImage } from '@/features/pokemon/usePokemonImage';
 
 export interface PokemonHeroProps {
   pokemon: Pokemon;
@@ -17,30 +17,21 @@ export interface PokemonHeroProps {
 }
 
 export function PokemonHero({ pokemon, species, className }: PokemonHeroProps) {
-  const [imageError, setImageError] = useState(false);
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [currentImgSrc, setCurrentImgSrc] = useState(
-    pokemon.artworkUrl || pokemon.imageUrl
-  );
-
-  // Synchronize image and load state whenever the target Pokémon changes (e.g. via evolution chain or prev/next navigation)
-  useEffect(() => {
-    setCurrentImgSrc(pokemon.artworkUrl || pokemon.imageUrl);
-    setIsLoaded(false);
-    setImageError(false);
-  }, [pokemon.id, pokemon.artworkUrl, pokemon.imageUrl]);
+  const {
+    currentImgSrc,
+    isLoaded,
+    imageError,
+    imgRef,
+    onLoad,
+    onError,
+  } = usePokemonImage({
+    primarySrc: pokemon.artworkUrl,
+    fallbackSrc: pokemon.imageUrl,
+    identifier: pokemon.id,
+  });
 
   const primaryType = pokemon.types[0] || 'normal';
   const typeStyle = getTypeStyle(primaryType);
-
-  const handleImageError = () => {
-    if (currentImgSrc !== pokemon.imageUrl && pokemon.imageUrl) {
-      setCurrentImgSrc(pokemon.imageUrl);
-    } else {
-      setImageError(true);
-      setIsLoaded(true);
-    }
-  };
 
   const hasPrevious = pokemon.id > 1;
   const previousId = pokemon.id - 1;
@@ -162,12 +153,17 @@ export function PokemonHero({ pokemon, species, className }: PokemonHeroProps) {
 
               {!imageError ? (
                 <img
+                  key={`${pokemon.id}-${currentImgSrc}`}
+                  ref={imgRef}
                   src={currentImgSrc}
                   alt={`${pokemon.displayName} official artwork`}
                   width={280}
                   height={280}
-                  onLoad={() => setIsLoaded(true)}
-                  onError={handleImageError}
+                  loading="eager"
+                  fetchPriority="high"
+                  decoding="async"
+                  onLoad={onLoad}
+                  onError={onError}
                   className={cn(
                     'relative z-10 h-60 w-60 sm:h-72 sm:w-72 object-contain drop-shadow-xl transition-all duration-300',
                     isLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
