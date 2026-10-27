@@ -19,7 +19,7 @@ export function NotFoundPage() {
             Page Not Found
           </h1>
           <p className="text-muted-foreground max-w-md mx-auto text-sm leading-relaxed">
-            The page or Pokémon destination you are looking for does not exist in the current application shell.
+            The page or Pokémon you are looking for does not exist or may have been moved.
           </p>
 
           <div className="pt-4">

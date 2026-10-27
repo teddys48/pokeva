@@ -3,7 +3,6 @@ import { NavLink, Link } from 'react-router-dom';
 import { ThemeToggle } from './ThemeToggle';
 import { PageContainer } from './PageContainer';
 import { Menu, X, Sparkles, BookOpen, Heart, Info } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
 import { useFavorites } from '@/features/favorites/useFavorites';
 import { cn } from '@/lib/utils';
 
@@ -37,11 +36,6 @@ export function Header() {
             <span className="flex items-baseline text-xl font-bold tracking-tight text-foreground">
               <span>Poké</span>
               <span className="text-primary font-black tracking-normal">va</span>
-              <span className="ml-1.5 hidden sm:inline-block">
-                <Badge variant="outline" size="sm" className="text-[10px] py-0 px-1.5 font-mono text-muted-foreground font-normal border-border/80">
-                  v0.5 · Phase 5
-                </Badge>
-              </span>
             </span>
           </Link>
 
@@ -194,9 +188,9 @@ export function Header() {
 
             <div className="pt-2 mt-2 border-t border-border/60 flex items-center justify-between text-xs text-muted-foreground px-2">
               <span className="flex items-center gap-1">
-                <Sparkles className="h-3.5 w-3.5 text-primary" /> Phase 5 Favorites & Collection
+                <Sparkles className="h-3.5 w-3.5 text-primary" /> Pokéva Explorer
               </span>
-              <span className="font-mono">React 19 + TanStack Query</span>
+              <span>Discover &amp; Collect</span>
             </div>
           </nav>
         </div>

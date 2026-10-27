@@ -142,7 +142,7 @@ export function FavoritesPage() {
               </Badge>
               <span className="text-xs text-muted-foreground hidden sm:inline-block">·</span>
               <span className="text-xs text-muted-foreground hidden sm:inline-block">
-                Saved in Local Storage
+                Saved on Your Device
               </span>
             </div>
 
@@ -154,8 +154,8 @@ export function FavoritesPage() {
             </h1>
 
             <p className="text-base text-muted-foreground leading-relaxed max-w-2xl">
-              Your curated Pokémon collection preserved securely in your browser.
-              Fast sorting, live search filtering, and cross-tab synchronization.
+              Your curated Pokémon collection preserved securely on your device.
+              Easily search, sort, and organize your favorite Pokémon anytime.
             </p>
 
             {/* Collection Metadata Highlights */}
@@ -208,7 +208,7 @@ export function FavoritesPage() {
                     size="sm"
                     onClick={handleRetryAllFailed}
                     className="gap-1.5 text-xs text-amber-600 dark:text-amber-400 border-amber-500/30 hover:bg-amber-500/10"
-                    title="Some favorite items had network glitches. Click to retry."
+                    title="Some favorites could not be loaded. Click to retry."
                   >
                     <AlertCircle className="h-3.5 w-3.5" />
                     <span>Retry {failedQueries.length} failed</span>

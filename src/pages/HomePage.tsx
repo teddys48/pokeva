@@ -56,7 +56,7 @@ export function HomePage() {
               </Badge>
               <span className="text-xs text-muted-foreground hidden sm:inline-block">·</span>
               <span className="text-xs text-muted-foreground hidden sm:inline-block">
-                Official PokéAPI v2 Data
+                Comprehensive Database
               </span>
             </div>
 
@@ -68,17 +68,16 @@ export function HomePage() {
             </h1>
 
             <p className="text-base text-muted-foreground leading-relaxed max-w-2xl">
-              A responsive, high-performance Pokédex interface with handcrafted design tokens,
-              light and dark themes, and high-contrast elemental badges. Powered by real-time
-              data from PokéAPI v2.
+              Discover Pokémon from every generation. Search species, compare elemental types,
+              and explore stats, abilities, moves, and evolution chains with an interactive, modern Pokédex.
             </p>
 
-            {/* Architecture Highlights Pill Row */}
+            {/* Highlights Pill Row */}
             <div className="pt-2 flex flex-wrap items-center gap-4 text-xs font-mono text-muted-foreground">
               <span className="flex items-center gap-1.5">
                 <Database className="h-3.5 w-3.5 text-primary" />
                 <span>
-                  {totalCount > 0 ? `${totalCount.toLocaleString()} Pokémon Indexed` : 'Live API Connected'}
+                  {totalCount > 0 ? `${totalCount.toLocaleString()} Pokémon Available` : 'Complete Pokédex'}
                 </span>
               </span>
               <span>·</span>
@@ -89,7 +88,7 @@ export function HomePage() {
               <span>·</span>
               <span className="flex items-center gap-1.5">
                 <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" />
-                <span>WCAG AA Accessible</span>
+                <span>Accessible &amp; Responsive</span>
               </span>
             </div>
           </div>

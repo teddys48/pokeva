@@ -45,7 +45,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 Something went wrong
               </h2>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                An unexpected error occurred in the application shell.
+                An unexpected error occurred while loading this page.
               </p>
             </div>
 

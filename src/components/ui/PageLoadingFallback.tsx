@@ -15,7 +15,7 @@ export function PageLoadingFallback() {
         <p className="text-sm font-medium text-foreground">Loading Pokéva...</p>
         <p className="text-xs text-muted-foreground flex items-center justify-center gap-1.5">
           <Loader2 className="h-3 w-3 animate-spin inline" aria-hidden="true" />
-          <span>Fetching resources</span>
+          <span>Loading Pokédex data...</span>
         </p>
       </div>
       <span className="sr-only">Loading page content, please wait...</span>

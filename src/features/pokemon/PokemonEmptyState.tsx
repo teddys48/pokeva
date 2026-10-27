@@ -29,7 +29,7 @@ export function PokemonEmptyState({
           </>
         ) : searchQuery ? (
           <>
-            No Pokémon matching &ldquo;<span className="font-semibold text-foreground">{searchQuery}</span>&rdquo; in the Phase 1 preview catalogue.
+            No Pokémon matching &ldquo;<span className="font-semibold text-foreground">{searchQuery}</span>&rdquo; in the Pokédex.
           </>
         ) : (
           <>

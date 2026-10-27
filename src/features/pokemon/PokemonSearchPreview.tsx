@@ -133,12 +133,12 @@ export function PokemonSearchPreview({
                 className="h-7 px-2 text-xs text-primary font-medium hover:text-primary/80 gap-1"
               >
                 <X className="h-3 w-3" />
-                <span>Clear type filter ({selectedType})</span>
+                <span>Clear filter ({selectedType})</span>
               </Button>
             )}
           </div>
           <CardTitle className="text-base sm:text-lg flex flex-wrap items-center justify-between gap-2">
-            <span>18 Pokémon Type Tokens</span>
+            <span>18 Elemental Types</span>
             <span className="text-xs font-normal text-muted-foreground font-mono">
               {selectedType === 'all'
                 ? 'All Types Active'

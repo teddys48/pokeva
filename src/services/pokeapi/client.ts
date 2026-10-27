@@ -47,7 +47,7 @@ function getDefaultUserMessage(code: PokeApiErrorCode, status?: number): string 
     return 'The requested Pokémon or resource could not be found.';
   }
   if (status === 429) {
-    return 'PokéAPI request limit reached. Please wait a moment before trying again.';
+    return 'Service request limit reached. Please wait a moment before trying again.';
   }
   if (status && status >= 500) {
     return 'The Pokémon service is temporarily unavailable. Please try again later.';

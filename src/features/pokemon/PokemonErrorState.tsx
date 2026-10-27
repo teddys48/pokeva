@@ -18,7 +18,7 @@ export function PokemonErrorState({
       ? error.userMessage
       : error instanceof Error
         ? error.message
-        : 'An unexpected error occurred while communicating with PokéAPI. Please check your connection and try again.';
+        : 'An unexpected error occurred while loading Pokémon data. Please check your connection and try again.';
 
   return (
     <div
