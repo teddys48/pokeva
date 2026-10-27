@@ -21,7 +21,9 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('Uncaught error in Pokéva application:', error, errorInfo);
+    if (import.meta.env.DEV) {
+      console.error('Uncaught error in Pokéva application:', error, errorInfo);
+    }
   }
 
   private handleReset = () => {
@@ -47,7 +49,7 @@ export class ErrorBoundary extends Component<Props, State> {
               </p>
             </div>
 
-            {this.state.error && (
+            {import.meta.env.DEV && this.state.error && (
               <pre className="text-left text-xs bg-muted/60 p-3 rounded-lg overflow-x-auto text-muted-foreground font-mono max-h-32">
                 {this.state.error.message}
               </pre>

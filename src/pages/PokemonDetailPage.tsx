@@ -16,17 +16,13 @@ import {
 } from '@/services/pokeapi/queries';
 import { mapPokeApiPokemonToPokemon } from '@/services/pokeapi/mappers';
 import { isNotFoundError } from '@/services/pokeapi/client';
+import { formatPokemonId } from '@/lib/utils';
+import { formatPokemonName } from '@/services/pokeapi/utils';
+import { useDocumentTitle } from '@/lib/useDocumentTitle';
 import { ArrowLeft } from 'lucide-react';
 
 export function PokemonDetailPage() {
   const { idOrName = '' } = useParams<{ idOrName: string }>();
-
-  // Smooth scroll to top when navigating across evolution stages or prev/next Pokémon
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  }, [idOrName]);
 
   // Fetch core Pokémon detail
   const {
@@ -36,6 +32,22 @@ export function PokemonDetailPage() {
     error: pokemonError,
     refetch: refetchPokemon,
   } = usePokemonDetail(idOrName);
+
+  // Dynamic document title based on fetch status and Pokémon metadata
+  const documentTitle = apiPokemon
+    ? `${formatPokemonName(apiPokemon.name)} (#${formatPokemonId(apiPokemon.id)}) — Pokéva`
+    : isPokemonError
+    ? `Pokémon "${idOrName}" Not Found — Pokéva`
+    : `${formatPokemonName(idOrName) || 'Pokémon'} — Pokéva`;
+
+  useDocumentTitle(documentTitle);
+
+  // Smooth scroll to top when navigating across evolution stages or prev/next Pokémon
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [idOrName]);
 
   // Fetch species info (dependent on Pokémon data or identifier)
   const speciesIdentifier = apiPokemon?.species?.name || idOrName;

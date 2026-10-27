@@ -3,10 +3,13 @@ import { PokemonSearchPreview } from '@/features/pokemon/PokemonSearchPreview';
 import { PokemonGrid } from '@/features/pokemon/PokemonGrid';
 import { PokemonPagination } from '@/features/pokemon/PokemonPagination';
 import { usePokedexListing } from '@/features/pokemon/usePokedexListing';
+import { useDocumentTitle } from '@/lib/useDocumentTitle';
 import { Sparkles, Layers, ShieldCheck, Database } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
 export function HomePage() {
+  useDocumentTitle('Pokéva — Pokémon Explorer & Pokédex');
+
   const {
     searchQuery,
     onSearchChange,
@@ -49,7 +52,7 @@ export function HomePage() {
                 className="border-primary/30 text-primary bg-primary/5 text-xs font-semibold gap-1.5 py-0.5 px-2.5"
               >
                 <Sparkles className="h-3.5 w-3.5" />
-                <span>Phase 3 Live Pokédex</span>
+                <span>Live Pokédex Explorer</span>
               </Badge>
               <span className="text-xs text-muted-foreground hidden sm:inline-block">·</span>
               <span className="text-xs text-muted-foreground hidden sm:inline-block">

@@ -1,10 +1,23 @@
+import { lazy } from 'react';
 import { createBrowserRouter } from 'react-router-dom';
 import { RootLayout } from '@/components/layout/RootLayout';
-import { HomePage } from '@/pages/HomePage';
-import { AboutPage } from '@/pages/AboutPage';
-import { PokemonDetailPage } from '@/pages/PokemonDetailPage';
-import { FavoritesPage } from '@/pages/FavoritesPage';
-import { NotFoundPage } from '@/pages/NotFoundPage';
+
+// Code-split route pages for optimal initial bundle size and on-demand delivery
+const HomePage = lazy(() =>
+  import('@/pages/HomePage').then((m) => ({ default: m.HomePage }))
+);
+const PokemonDetailPage = lazy(() =>
+  import('@/pages/PokemonDetailPage').then((m) => ({ default: m.PokemonDetailPage }))
+);
+const FavoritesPage = lazy(() =>
+  import('@/pages/FavoritesPage').then((m) => ({ default: m.FavoritesPage }))
+);
+const AboutPage = lazy(() =>
+  import('@/pages/AboutPage').then((m) => ({ default: m.AboutPage }))
+);
+const NotFoundPage = lazy(() =>
+  import('@/pages/NotFoundPage').then((m) => ({ default: m.NotFoundPage }))
+);
 
 export const router = createBrowserRouter([
   {

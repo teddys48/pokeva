@@ -2,13 +2,16 @@ import { PageContainer } from '@/components/layout/PageContainer';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { POKEMON_TYPE_STYLES, PokemonTypeName } from '@/styles/typeColors';
-import { CheckCircle2, Clock, Sparkles, Layers, Palette, Terminal, Database } from 'lucide-react';
+import { useDocumentTitle } from '@/lib/useDocumentTitle';
+import { CheckCircle2, Sparkles, Layers, Palette, Terminal, Database } from 'lucide-react';
 
 export function AboutPage() {
+  useDocumentTitle('About Pokéva — Modern Pokémon Explorer');
+
   const typeKeys = Object.keys(POKEMON_TYPE_STYLES) as PokemonTypeName[];
 
   return (
-    <div className="py-8 md:py-10 space-y-8">
+    <div className="py-8 md:py-10 space-y-8 animate-fade-in">
       <PageContainer size="narrow">
         {/* Intro */}
         <div className="space-y-3">
@@ -20,7 +23,7 @@ export function AboutPage() {
             About Pokéva
           </h1>
           <p className="text-muted-foreground leading-relaxed">
-            Pokéva is a modern Pokémon Explorer web application built with React, Vite, TypeScript, and Tailwind CSS. Phase 2 introduces a typed, resilient data-access layer for the official PokéAPI v2.
+            Pokéva is a modern Pokémon Explorer web application built with React 19, Vite, TypeScript, and Tailwind CSS. Featuring a typed, resilient data-access layer for the official PokéAPI v2 with high-performance caching and WCAG AA accessibility.
           </p>
         </div>
 
@@ -30,34 +33,35 @@ export function AboutPage() {
             <CardHeader className="pb-3">
               <div className="flex items-center gap-2 text-primary font-semibold text-sm">
                 <CheckCircle2 className="h-4 w-4" />
-                <span>Phase 1 & Phase 2: Completed</span>
+                <span>Foundations & Data Layer</span>
               </div>
-              <CardTitle className="text-lg">Design System & Data Layer</CardTitle>
+              <CardTitle className="text-lg">Design System & PokéAPI v2</CardTitle>
             </CardHeader>
             <CardContent className="text-sm space-y-2 text-muted-foreground">
               <p>✓ Modern, editorial layout and typographic Pokéball mark.</p>
               <p>✓ Semantic light/dark theme with persistent local storage.</p>
               <p>✓ Centralized 18-element Pokémon type design tokens.</p>
               <p>✓ Reusable UI primitives (Button, Input, Badge, Card, Skeleton).</p>
-              <p>✓ PokéAPI v2 client with 5 typed endpoints and query options.</p>
               <p>✓ Typed error hierarchy, abort cancellation & data mappers.</p>
+              <p>✓ Tuned TanStack Query caching and retry management.</p>
             </CardContent>
           </Card>
 
-          <Card className="border-border">
+          <Card className="border-border bg-card">
             <CardHeader className="pb-3">
-              <div className="flex items-center gap-2 text-muted-foreground font-semibold text-sm">
-                <Clock className="h-4 w-4 text-amber-500" />
-                <span>Phase 3 (Next)</span>
+              <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-semibold text-sm">
+                <CheckCircle2 className="h-4 w-4" />
+                <span>Exploration & Production</span>
               </div>
-              <CardTitle className="text-lg">Live Pokédex & Exploration</CardTitle>
+              <CardTitle className="text-lg">Exploration & Production Ready</CardTitle>
             </CardHeader>
             <CardContent className="text-sm space-y-2 text-muted-foreground">
-              <p>⏳ Phase 3: Live Pokédex grid connected to PokéAPI data layer.</p>
-              <p>⏳ Phase 3: Paginated / infinite scroll exploration UI.</p>
-              <p>⏳ Phase 3: Real-time search & type filtering over live resources.</p>
-              <p>⏳ Phase 3: Live loading skeletons, empty, and error recovery states.</p>
-              <p>⏳ Future: Pokémon detail page, stat charts & evolution chains.</p>
+              <p>✓ Live Pokédex catalogue with real-time search & type filters.</p>
+              <p>✓ Comprehensive Pokémon detail page with branching evolutions.</p>
+              <p>✓ Categorized moves browser with on-demand detail fetching.</p>
+              <p>✓ Versioned favorites collection with cross-tab synchronization.</p>
+              <p>✓ Route-level code-splitting, prefetching & lazy loading.</p>
+              <p>✓ Production deployment headers, SPA rewrites & security hygiene.</p>
             </CardContent>
           </Card>
         </div>

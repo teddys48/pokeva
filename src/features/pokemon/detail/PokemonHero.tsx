@@ -1,3 +1,4 @@
+import { useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { Pokemon } from '@/types/pokemon';
 import { PokeApiSpecies } from '@/types/pokeapi';
@@ -9,6 +10,8 @@ import { cn } from '@/lib/utils';
 import { ArrowLeft, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
 import { FavoriteButton } from '@/features/favorites/FavoriteButton';
 import { usePokemonImage } from '@/features/pokemon/usePokemonImage';
+import { queryClient } from '@/lib/queryClient';
+import { pokemonQueries } from '@/services/pokeapi/queries';
 
 export interface PokemonHeroProps {
   pokemon: Pokemon;
@@ -16,7 +19,7 @@ export interface PokemonHeroProps {
   className?: string;
 }
 
-export function PokemonHero({ pokemon, species, className }: PokemonHeroProps) {
+export function PokemonHero({ pokemon, species: _species, className }: PokemonHeroProps) {
   const {
     currentImgSrc,
     isLoaded,
@@ -36,6 +39,19 @@ export function PokemonHero({ pokemon, species, className }: PokemonHeroProps) {
   const hasPrevious = pokemon.id > 1;
   const previousId = pokemon.id - 1;
   const nextId = pokemon.id + 1;
+
+  // Prefetch adjacent Pokémon for instantaneous Prev/Next transitions
+  const handlePrefetchPrev = useCallback(() => {
+    if (hasPrevious) {
+      queryClient.prefetchQuery(pokemonQueries.detail(previousId));
+      queryClient.prefetchQuery(pokemonQueries.species(previousId));
+    }
+  }, [hasPrevious, previousId]);
+
+  const handlePrefetchNext = useCallback(() => {
+    queryClient.prefetchQuery(pokemonQueries.detail(nextId));
+    queryClient.prefetchQuery(pokemonQueries.species(nextId));
+  }, [nextId]);
 
   return (
     <div className={cn('relative space-y-4', className)}>
@@ -69,6 +85,8 @@ export function PokemonHero({ pokemon, species, className }: PokemonHeroProps) {
             {hasPrevious ? (
               <Link
                 to={`/pokemon/${previousId}`}
+                onMouseEnter={handlePrefetchPrev}
+                onFocus={handlePrefetchPrev}
                 aria-label={`Previous Pokémon, #${formatPokemonId(previousId)}`}
               >
                 <Button
@@ -95,6 +113,8 @@ export function PokemonHero({ pokemon, species, className }: PokemonHeroProps) {
 
             <Link
               to={`/pokemon/${nextId}`}
+              onMouseEnter={handlePrefetchNext}
+              onFocus={handlePrefetchNext}
               aria-label={`Next Pokémon, #${formatPokemonId(nextId)}`}
             >
               <Button
@@ -198,44 +218,38 @@ export function PokemonHero({ pokemon, species, className }: PokemonHeroProps) {
               </span>
               <span className="text-border">·</span>
               <span className="text-xs sm:text-sm font-medium text-muted-foreground">
-                {pokemon.genus || 'Pokémon'}
+                {domainGenerationLabel(pokemon.generation)}
               </span>
-
-              {species?.is_legendary && (
-                <Badge variant="default" size="sm" className="bg-amber-500/20 text-amber-700 dark:text-amber-300 border-amber-400">
-                  Legendary
-                </Badge>
-              )}
-              {species?.is_mythical && (
-                <Badge variant="default" size="sm" className="bg-purple-500/20 text-purple-700 dark:text-purple-300 border-purple-400">
-                  Mythical
-                </Badge>
-              )}
-              {species?.is_baby && (
-                <Badge variant="outline" size="sm" className="text-muted-foreground">
-                  Baby
-                </Badge>
-              )}
+              <span className="text-border">·</span>
+              <span className="text-xs sm:text-sm font-medium text-muted-foreground italic">
+                {pokemon.genus}
+              </span>
             </div>
 
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-foreground capitalize">
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-foreground capitalize leading-tight">
               {pokemon.displayName}
             </h1>
 
-            {/* Type Badges */}
-            <div className="flex flex-wrap items-center gap-2 pt-1" aria-label="Pokémon Types">
+            {/* Elemental Types */}
+            <div className="flex flex-wrap gap-2 pt-1" aria-label="Elemental types">
               {pokemon.types.map((type) => (
-                <Badge key={type} pokemonType={type} size="md" className="px-3 py-1 text-xs" />
+                <Badge key={type} pokemonType={type} size="md" />
               ))}
             </div>
 
             {/* Flavor Text Description */}
             <p className="text-sm sm:text-base text-muted-foreground leading-relaxed pt-2 max-w-xl">
-              {pokemon.description}
+              {pokemon.description ||
+                `${pokemon.displayName} is a ${pokemon.types.join(' and ')}-type Pokémon registered in the official Pokédex.`}
             </p>
           </div>
         </div>
       </div>
     </div>
   );
+}
+
+function domainGenerationLabel(gen: number): string {
+  const roman = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX'][gen - 1] || String(gen);
+  return `Generation ${roman}`;
 }

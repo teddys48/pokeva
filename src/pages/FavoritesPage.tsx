@@ -12,6 +12,7 @@ import { mapPokeApiPokemonToPokemon } from '@/services/pokeapi/mappers';
 import { formatPokemonName } from '@/services/pokeapi/utils';
 import { Pokemon } from '@/types/pokemon';
 import { FavoritesSortOption } from '@/types/favorites';
+import { useDocumentTitle } from '@/lib/useDocumentTitle';
 import { Heart, Search, ArrowUpDown, RefreshCw, AlertCircle } from 'lucide-react';
 
 /**
@@ -50,6 +51,12 @@ export function FavoritesPage() {
   const { favorites, totalFavorites } = useFavorites();
   const [searchFilter, setSearchFilter] = useState('');
   const [sortBy, setSortBy] = useState<FavoritesSortOption>('recent');
+
+  useDocumentTitle(
+    totalFavorites > 0
+      ? `My Favorites (${totalFavorites}) — Pokéva`
+      : 'My Favorites — Pokéva'
+  );
 
   // Filter favorites by optional search text
   const filteredFavorites = useMemo(() => {
@@ -99,14 +106,13 @@ export function FavoritesPage() {
     failedQueries.forEach((q) => q.refetch());
   };
 
-  // Resolve final domain Pokémon models matching sorted order strictly
-  const resolvedList: Pokemon[] = useMemo(() => {
+  // Combine query results or fall back to provisional representation
+  const resolvedPokemonList: Pokemon[] = useMemo(() => {
     return sortedFavorites.map((fav, index) => {
       const queryResult = detailQueries[index];
       if (queryResult?.data) {
         return mapPokeApiPokemonToPokemon(queryResult.data);
       }
-      // Return stable provisional Pokémon model during loading or API failure
       return createProvisionalFavoritePokemon(fav.id, fav.name);
     });
   }, [sortedFavorites, detailQueries]);
@@ -114,12 +120,12 @@ export function FavoritesPage() {
   return (
     <div className="py-8 md:py-10 space-y-8 animate-fade-in">
       <PageContainer>
-        {/* Header Hero Section */}
+        {/* Header Section */}
         <section
-          className="relative overflow-hidden rounded-3xl border border-border/80 bg-gradient-to-b from-card via-card to-rose-500/5 p-6 sm:p-8 lg:p-10 shadow-xs"
+          className="relative overflow-hidden rounded-3xl border border-border/80 bg-gradient-to-b from-card via-card to-secondary/30 p-6 sm:p-8 lg:p-10 shadow-xs"
           aria-labelledby="favorites-heading"
         >
-          {/* Subtle Ambient Rose Glow */}
+          {/* Subtle Pink Ambient Glow */}
           <div
             className="pointer-events-none absolute -right-24 -top-24 h-96 w-96 rounded-full bg-rose-500/10 blur-3xl"
             aria-hidden="true"
@@ -129,14 +135,14 @@ export function FavoritesPage() {
             <div className="flex flex-wrap items-center gap-2">
               <Badge
                 variant="outline"
-                className="border-rose-500/30 text-rose-600 dark:text-rose-400 bg-rose-500/5 text-xs font-semibold gap-1.5 py-0.5 px-2.5"
+                className="border-rose-500/30 text-rose-500 bg-rose-500/5 text-xs font-semibold gap-1.5 py-0.5 px-2.5"
               >
-                <Heart className="h-3.5 w-3.5 fill-rose-500 text-rose-500" />
+                <Heart className="h-3.5 w-3.5 fill-current" />
                 <span>Personal Collection</span>
               </Badge>
               <span className="text-xs text-muted-foreground hidden sm:inline-block">·</span>
-              <span className="text-xs text-muted-foreground">
-                Persisted in your browser
+              <span className="text-xs text-muted-foreground hidden sm:inline-block">
+                Saved in Local Storage
               </span>
             </div>
 
@@ -144,121 +150,126 @@ export function FavoritesPage() {
               id="favorites-heading"
               className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-foreground leading-tight"
             >
-              Favorite Pokémon
+              My Favorite <span className="text-rose-500">Pokémon</span>.
             </h1>
 
             <p className="text-base text-muted-foreground leading-relaxed max-w-2xl">
-              Your curated Pokémon collection. All favorites are saved locally on this device and updated in real-time.
+              Your curated Pokémon collection preserved securely in your browser.
+              Fast sorting, live search filtering, and cross-tab synchronization.
             </p>
 
-            <div className="pt-1 flex items-center gap-3 text-xs font-mono text-muted-foreground">
-              <span className="font-semibold text-foreground">
-                {totalFavorites} {totalFavorites === 1 ? 'Pokémon' : 'Pokémon'} Saved
+            {/* Collection Metadata Highlights */}
+            <div className="pt-2 flex flex-wrap items-center gap-4 text-xs font-mono text-muted-foreground">
+              <span className="flex items-center gap-1.5 font-semibold text-foreground">
+                <Heart className="h-3.5 w-3.5 text-rose-500 fill-current" />
+                <span>
+                  {totalFavorites} {totalFavorites === 1 ? 'Pokémon' : 'Pokémon'} Saved
+                </span>
+              </span>
+              <span>·</span>
+              <span>
+                {filteredFavorites.length} Displayed
               </span>
             </div>
           </div>
         </section>
 
-        {/* Collection Content */}
+        {/* Empty State vs Collection Content */}
         {totalFavorites === 0 ? (
-          <FavoritesEmptyState />
+          <section className="mt-8">
+            <FavoritesEmptyState />
+          </section>
         ) : (
-          <div className="mt-8 space-y-6">
-            {/* Filter, Search & Sort Toolbar */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-4 rounded-2xl border border-border/80 bg-card/60 backdrop-blur-xs">
+          <section className="mt-8 space-y-6" aria-label="Favorites catalogue">
+            {/* Action Bar: Search Input, Sorting, & Recoverable Retry */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 p-4 rounded-2xl border border-border/80 bg-card/60 backdrop-blur-xs">
+              {/* Search Filter */}
               <div className="relative flex-1 max-w-md">
+                <Search
+                  className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none"
+                  aria-hidden="true"
+                />
                 <Input
-                  type="search"
-                  placeholder="Filter your favorites by name or #ID..."
+                  type="text"
+                  placeholder="Filter favorites by name or #ID..."
                   value={searchFilter}
                   onChange={(e) => setSearchFilter(e.target.value)}
-                  clearable={Boolean(searchFilter)}
-                  onClear={() => setSearchFilter('')}
-                  icon={<Search className="h-4 w-4" />}
-                  className="h-10 text-sm"
-                  aria-label="Filter favorites"
+                  className="pl-9 pr-4 py-2 bg-background border-border/80"
+                  aria-label="Filter saved favorites"
                 />
               </div>
 
-              <div className="flex items-center gap-2.5 justify-end">
-                <label
-                  htmlFor="favorites-sort"
-                  className="text-xs font-medium text-muted-foreground flex items-center gap-1.5 shrink-0"
-                >
-                  <ArrowUpDown className="h-3.5 w-3.5" />
-                  <span>Sort by:</span>
-                </label>
-                <select
-                  id="favorites-sort"
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value as FavoritesSortOption)}
-                  className="h-10 rounded-xl border border-border/80 bg-background px-3 py-1.5 text-xs font-medium text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring cursor-pointer"
-                  aria-label="Sort favorite Pokémon"
-                >
-                  <option value="recent">Recently Added</option>
-                  <option value="oldest">Oldest First</option>
-                  <option value="id-asc">Pokédex Number (Low to High)</option>
-                  <option value="id-desc">Pokédex Number (High to Low)</option>
-                  <option value="name-asc">Name (A to Z)</option>
-                </select>
+              {/* Sorting & Retry Controls */}
+              <div className="flex flex-wrap items-center gap-2.5 justify-end">
+                {/* Partial Failure Warning & Retry Button */}
+                {failedQueries.length > 0 && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleRetryAllFailed}
+                    className="gap-1.5 text-xs text-amber-600 dark:text-amber-400 border-amber-500/30 hover:bg-amber-500/10"
+                    title="Some favorite items had network glitches. Click to retry."
+                  >
+                    <AlertCircle className="h-3.5 w-3.5" />
+                    <span>Retry {failedQueries.length} failed</span>
+                    <RefreshCw className="h-3 w-3" />
+                  </Button>
+                )}
+
+                {/* Sort dropdown */}
+                <div className="flex items-center gap-2">
+                  <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground shrink-0" aria-hidden="true" />
+                  <label htmlFor="favorites-sort" className="text-xs font-medium text-muted-foreground shrink-0">
+                    Sort:
+                  </label>
+                  <select
+                    id="favorites-sort"
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value as FavoritesSortOption)}
+                    className="text-xs font-medium bg-background border border-border/80 rounded-lg px-2.5 py-1.5 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    aria-label="Sort favorites"
+                  >
+                    <option value="recent">Recently Added</option>
+                    <option value="oldest">Oldest First</option>
+                    <option value="id-asc">Pokédex # (Ascending)</option>
+                    <option value="id-desc">Pokédex # (Descending)</option>
+                    <option value="name-asc">Name (A–Z)</option>
+                  </select>
+                </div>
               </div>
             </div>
 
-            {/* Recoverable Network Error Notice */}
-            {failedQueries.length > 0 && (
-              <div
-                role="alert"
-                className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-800 dark:text-amber-200 animate-fade-in"
-              >
-                <div className="flex items-center gap-2">
-                  <AlertCircle className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
-                  <span>
-                    Unable to fetch full details for {failedQueries.length} Pokémon from PokéAPI. Showing saved collection data.
-                  </span>
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleRetryAllFailed}
-                  className="gap-1.5 h-8 border-amber-500/30 bg-background/80 hover:bg-background"
-                >
-                  <RefreshCw className="h-3.5 w-3.5" />
-                  <span>Retry</span>
-                </Button>
-              </div>
-            )}
-
-            {/* Empty search filter result */}
-            {resolvedList.length === 0 ? (
-              <div
-                role="status"
-                className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border/80 bg-card/40 p-8 text-center animate-fade-in"
-              >
-                <p className="text-sm text-muted-foreground">
-                  No saved favorites matching &ldquo;<span className="font-semibold text-foreground">{searchFilter}</span>&rdquo;.
+            {/* Zero Filter Result State */}
+            {filteredFavorites.length === 0 && searchFilter.trim() !== '' ? (
+              <div className="rounded-2xl border border-dashed border-border/80 p-12 text-center space-y-3 bg-card/30">
+                <p className="text-sm font-medium text-foreground">
+                  No saved favorites match "{searchFilter}"
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Try clearing the search query to view all your saved favorites.
                 </p>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => setSearchFilter('')}
-                  className="mt-3 text-xs"
+                  className="mt-2 text-xs"
                 >
-                  Clear filter
+                  Clear Search Filter
                 </Button>
               </div>
             ) : (
-              /* Populated Favorites Grid */
-              <div
-                className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5"
-                role="region"
-                aria-label="Favorite Pokémon collection"
-              >
-                {resolvedList.map((pokemon, index) => (
-                  <PokemonCard key={pokemon.id} pokemon={pokemon} priority={index < 8} />
+              /* Favorites Cards Grid */
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+                {resolvedPokemonList.map((pokemon, index) => (
+                  <PokemonCard
+                    key={pokemon.id}
+                    pokemon={pokemon}
+                    priority={index < 4}
+                  />
                 ))}
               </div>
             )}
-          </div>
+          </section>
         )}
       </PageContainer>
     </div>

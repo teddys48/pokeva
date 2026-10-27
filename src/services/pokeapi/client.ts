@@ -1,6 +1,8 @@
 import { PokeApiErrorCode, PokeApiErrorOptions } from '@/types/pokeapi';
 
-export const POKEAPI_BASE_URL = 'https://pokeapi.co/api/v2';
+export const POKEAPI_BASE_URL =
+  (typeof import.meta !== 'undefined' && import.meta.env?.VITE_POKEAPI_BASE_URL) ||
+  'https://pokeapi.co/api/v2';
 
 /**
  * Structured error class for PokéAPI client operations.
@@ -119,8 +121,13 @@ export class PokeApiClient {
     endpoint: string,
     params?: Record<string, string | number | boolean | undefined>
   ): string {
-    const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
-    const url = new URL(`${this.baseUrl}${cleanEndpoint}`);
+    let url: URL;
+    if (endpoint.startsWith('http://') || endpoint.startsWith('https://')) {
+      url = new URL(endpoint);
+    } else {
+      const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+      url = new URL(`${this.baseUrl}${cleanEndpoint}`);
+    }
 
     if (params) {
       for (const [key, value] of Object.entries(params)) {

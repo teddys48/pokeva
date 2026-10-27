@@ -1,3 +1,4 @@
+import { memo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { Pokemon } from '@/types/pokemon';
 import { Badge } from '@/components/ui/badge';
@@ -7,6 +8,8 @@ import { cn } from '@/lib/utils';
 import { Shield, Zap, Sparkles, ArrowUpRight } from 'lucide-react';
 import { FavoriteButton } from '@/features/favorites/FavoriteButton';
 import { usePokemonImage } from './usePokemonImage';
+import { queryClient } from '@/lib/queryClient';
+import { pokemonQueries } from '@/services/pokeapi/queries';
 
 export interface PokemonCardProps {
   pokemon: Pokemon;
@@ -14,7 +17,11 @@ export interface PokemonCardProps {
   priority?: boolean;
 }
 
-export function PokemonCard({ pokemon, className, priority = false }: PokemonCardProps) {
+export const PokemonCard = memo(function PokemonCard({
+  pokemon,
+  className,
+  priority = false,
+}: PokemonCardProps) {
   const {
     currentImgSrc,
     isLoaded,
@@ -31,10 +38,20 @@ export function PokemonCard({ pokemon, className, priority = false }: PokemonCar
   const primaryType = pokemon.types[0] || 'normal';
   const typeStyle = getTypeStyle(primaryType);
 
+  // Intent-based prefetching for instantaneous detail page transitions
+  const handlePrefetch = useCallback(() => {
+    if (pokemon.name) {
+      queryClient.prefetchQuery(pokemonQueries.detail(pokemon.name));
+      queryClient.prefetchQuery(pokemonQueries.species(pokemon.name));
+    }
+  }, [pokemon.name]);
+
   return (
     <Link
       to={`/pokemon/${pokemon.id}`}
       tabIndex={0}
+      onMouseEnter={handlePrefetch}
+      onFocus={handlePrefetch}
       aria-label={`View details for ${pokemon.displayName}, #${formatPokemonId(pokemon.id)}, ${pokemon.types.join(' and ')} type`}
       className={cn(
         'group relative flex h-full flex-col justify-between overflow-hidden rounded-2xl border border-border/80 bg-card p-4 transition-all duration-200 cursor-pointer',
@@ -169,4 +186,4 @@ export function PokemonCard({ pokemon, className, priority = false }: PokemonCar
       </div>
     </Link>
   );
-}
+});

@@ -1,9 +1,12 @@
 import { Link } from 'react-router-dom';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Button } from '@/components/ui/button';
+import { useDocumentTitle } from '@/lib/useDocumentTitle';
 import { ArrowLeft, HelpCircle } from 'lucide-react';
 
 export function NotFoundPage() {
+  useDocumentTitle('404 Page Not Found — Pokéva');
+
   return (
     <div className="py-16 md:py-24">
       <PageContainer size="narrow">
