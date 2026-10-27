@@ -4,4 +4,5 @@ export * from './queries';
 export * from './utils';
 export * from './mappers';
 export * from './evolution';
+export * from './typeEffectiveness';
 export * from '@/types/pokeapi';

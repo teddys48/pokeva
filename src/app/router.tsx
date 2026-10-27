@@ -9,6 +9,9 @@ const HomePage = lazy(() =>
 const PokemonDetailPage = lazy(() =>
   import('@/pages/PokemonDetailPage').then((m) => ({ default: m.PokemonDetailPage }))
 );
+const TypeCalculatorPage = lazy(() =>
+  import('@/pages/TypeCalculatorPage').then((m) => ({ default: m.TypeCalculatorPage }))
+);
 const FavoritesPage = lazy(() =>
   import('@/pages/FavoritesPage').then((m) => ({ default: m.FavoritesPage }))
 );
@@ -31,6 +34,10 @@ export const router = createBrowserRouter([
       {
         path: 'pokemon/:idOrName',
         element: <PokemonDetailPage />,
+      },
+      {
+        path: 'type-calculator',
+        element: <TypeCalculatorPage />,
       },
       {
         path: 'favorites',

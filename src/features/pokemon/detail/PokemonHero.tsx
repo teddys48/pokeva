@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { formatPokemonId } from '@/lib/utils';
 import { getTypeStyle } from '@/styles/typeColors';
 import { cn } from '@/lib/utils';
-import { ArrowLeft, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
+import { ArrowLeft, ChevronLeft, ChevronRight, Sparkles, ShieldAlert } from 'lucide-react';
 import { FavoriteButton } from '@/features/favorites/FavoriteButton';
 import { usePokemonImage } from '@/features/pokemon/usePokemonImage';
 import { queryClient } from '@/lib/queryClient';
@@ -52,6 +52,12 @@ export function PokemonHero({ pokemon, species: _species, className }: PokemonHe
     queryClient.prefetchQuery(pokemonQueries.detail(nextId));
     queryClient.prefetchQuery(pokemonQueries.species(nextId));
   }, [nextId]);
+
+  const d1 = pokemon.types[0] || 'normal';
+  const d2 = pokemon.types[1] || '';
+  const calculatorUrl = `/type-calculator?pokemon=${encodeURIComponent(pokemon.name)}&defender1=${d1}${
+    d2 ? `&defender2=${d2}` : ''
+  }`;
 
   return (
     <div className={cn('relative space-y-4', className)}>
@@ -230,11 +236,27 @@ export function PokemonHero({ pokemon, species: _species, className }: PokemonHe
               {pokemon.displayName}
             </h1>
 
-            {/* Elemental Types */}
-            <div className="flex flex-wrap gap-2 pt-1" aria-label="Elemental types">
-              {pokemon.types.map((type) => (
-                <Badge key={type} pokemonType={type} size="md" />
-              ))}
+            {/* Elemental Types & Analyze Type Weakness Action */}
+            <div className="flex flex-wrap items-center gap-2.5 pt-1" aria-label="Elemental types and weakness analysis">
+              <div className="flex flex-wrap gap-2">
+                {pokemon.types.map((type) => (
+                  <Badge key={type} pokemonType={type} size="md" />
+                ))}
+              </div>
+
+              <Link
+                to={calculatorUrl}
+                aria-label={`Analyze ${pokemon.displayName} type weaknesses in Type Calculator`}
+              >
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-7 px-2.5 text-xs font-semibold gap-1.5 text-primary border-primary/30 hover:bg-primary/10 rounded-full"
+                >
+                  <ShieldAlert className="h-3.5 w-3.5" aria-hidden="true" />
+                  <span>Analyze Type Weakness</span>
+                </Button>
+              </Link>
             </div>
 
             {/* Flavor Text Description */}

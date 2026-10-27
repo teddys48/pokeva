@@ -19,7 +19,7 @@ import { isNotFoundError } from '@/services/pokeapi/client';
 import { formatPokemonId } from '@/lib/utils';
 import { formatPokemonName } from '@/services/pokeapi/utils';
 import { useDocumentTitle } from '@/lib/useDocumentTitle';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, ShieldAlert } from 'lucide-react';
 
 export function PokemonDetailPage() {
   const { idOrName = '' } = useParams<{ idOrName: string }>();
@@ -99,6 +99,11 @@ export function PokemonDetailPage() {
 
   // Normalize into application domain model
   const domainPokemon = mapPokeApiPokemonToPokemon(apiPokemon, speciesData);
+  const d1 = domainPokemon.types[0] || 'normal';
+  const d2 = domainPokemon.types[1] || '';
+  const calculatorUrl = `/type-calculator?pokemon=${encodeURIComponent(domainPokemon.name)}&defender1=${d1}${
+    d2 ? `&defender2=${d2}` : ''
+  }`;
 
   return (
     <PageContainer key={domainPokemon.id} className="py-8 sm:py-10 space-y-8 animate-fade-in">
@@ -109,6 +114,30 @@ export function PokemonDetailPage() {
           pokemon={domainPokemon}
           species={speciesData}
         />
+      </section>
+
+      {/* Type Effectiveness Entry Section */}
+      <section aria-label="Type Effectiveness">
+        <div className="rounded-2xl border border-border/80 bg-card p-5 sm:p-6 shadow-2xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition-all">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <ShieldAlert className="h-5 w-5 text-primary" aria-hidden="true" />
+              <h3 className="text-base sm:text-lg font-bold text-foreground">
+                Type Effectiveness Analysis
+              </h3>
+            </div>
+            <p className="text-xs sm:text-sm text-muted-foreground">
+              Analyze battle vulnerabilities, defensive multipliers, weaknesses, resistances, and immunities for {domainPokemon.displayName}.
+            </p>
+          </div>
+
+          <Link to={calculatorUrl}>
+            <Button className="gap-2 font-semibold shrink-0">
+              <ShieldAlert className="h-4 w-4" aria-hidden="true" />
+              <span>Open Type Calculator</span>
+            </Button>
+          </Link>
+        </div>
       </section>
 
       {/* Two Column Grid: Base Stats & Physical/Species Data */}

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { NavLink, Link } from 'react-router-dom';
 import { ThemeToggle } from './ThemeToggle';
 import { PageContainer } from './PageContainer';
-import { Menu, X, Sparkles, BookOpen, Heart, Info } from 'lucide-react';
+import { Menu, X, Sparkles, BookOpen, Heart, Info, ShieldAlert } from 'lucide-react';
 import { useFavorites } from '@/features/favorites/useFavorites';
 import { cn } from '@/lib/utils';
 
@@ -55,6 +55,22 @@ export function Header() {
             >
               <BookOpen className="h-4 w-4" />
               <span>Pokédex</span>
+            </NavLink>
+
+            {/* Type Calculator Navigation */}
+            <NavLink
+              to="/type-calculator"
+              className={({ isActive }) =>
+                cn(
+                  'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors',
+                  isActive
+                    ? 'bg-secondary text-foreground shadow-2xs font-semibold'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'
+                )
+              }
+            >
+              <ShieldAlert className="h-4 w-4 text-primary" />
+              <span>Type Calculator</span>
             </NavLink>
 
             {/* Favorites Navigation */}
@@ -140,6 +156,22 @@ export function Header() {
             >
               <BookOpen className="h-4 w-4 text-primary" />
               <span>Pokédex</span>
+            </NavLink>
+
+            <NavLink
+              to="/type-calculator"
+              onClick={closeMobileMenu}
+              className={({ isActive }) =>
+                cn(
+                  'flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
+                  isActive
+                    ? 'bg-secondary text-foreground font-semibold'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'
+                )
+              }
+            >
+              <ShieldAlert className="h-4 w-4 text-primary" />
+              <span>Type Calculator</span>
             </NavLink>
 
             <NavLink

@@ -61,6 +61,7 @@ export const pokemonKeys = {
   species: (idOrName: string | number) =>
     [...pokemonKeys.speciesAll(), String(idOrName).toLowerCase().trim()] as const,
   types: () => [...pokemonKeys.all, 'type'] as const,
+  typesList: () => [...pokemonKeys.types(), 'list'] as const,
   type: (idOrName: string | number) =>
     [...pokemonKeys.types(), String(idOrName).toLowerCase().trim()] as const,
   evolutionChains: () => [...pokemonKeys.all, 'evolution-chain'] as const,
@@ -128,6 +129,20 @@ export const pokemonQueries = {
       staleTime: STALE_TIMES.SPECIES,
       retry: shouldRetry,
       enabled: hasIdentifier,
+    });
+  },
+
+  typesList: () => {
+    return queryOptions<
+      NamedAPIResourceList<NamedAPIResource>,
+      PokeApiError,
+      NamedAPIResourceList<NamedAPIResource>,
+      ReturnType<typeof pokemonKeys.typesList>
+    >({
+      queryKey: pokemonKeys.typesList(),
+      queryFn: ({ signal }) => pokemonService.getTypeList(signal),
+      staleTime: STALE_TIMES.TYPE,
+      retry: shouldRetry,
     });
   },
 
@@ -238,6 +253,10 @@ export function usePokemonSpecies(
     ...queryConfig,
     enabled: options?.enabled !== undefined ? options.enabled && queryConfig.enabled : queryConfig.enabled,
   });
+}
+
+export function useTypeList(): UseQueryResult<NamedAPIResourceList<NamedAPIResource>, PokeApiError> {
+  return useQuery(pokemonQueries.typesList());
 }
 
 export function usePokemonType(

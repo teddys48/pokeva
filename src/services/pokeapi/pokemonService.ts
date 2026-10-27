@@ -107,6 +107,16 @@ export class PokemonService {
   }
 
   /**
+   * Fetch elemental type listing.
+   * Endpoint: GET /type
+   */
+  public async getTypeList(
+    signal?: AbortSignal
+  ): Promise<NamedAPIResourceList<NamedAPIResource>> {
+    return this.client.get<NamedAPIResourceList<NamedAPIResource>>('/type', { signal });
+  }
+
+  /**
    * Fetch evolution chain resource by numeric ID or full PokéAPI URL.
    * Endpoint: GET /evolution-chain/{id}
    */
@@ -166,6 +176,5 @@ export class PokemonService {
 }
 
 /**
- * Default singleton instance of PokemonService.
- */
+ * Default singleton instance of PokemonService.\n */
 export const pokemonService = new PokemonService();
