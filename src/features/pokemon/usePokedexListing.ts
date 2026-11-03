@@ -1,15 +1,14 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { useQueries, useQuery } from '@tanstack/react-query';
-import { pokemonQueries } from '@/services/pokeapi/queries';
+import { useInfiniteQuery, useQueries, useQuery } from '@tanstack/react-query';
+import { pokemonKeys, pokemonQueries, shouldRetry } from '@/services/pokeapi/queries';
+import { pokemonService } from '@/services/pokeapi/pokemonService';
 import { PokemonTypeName } from '@/styles/typeColors';
 import { Pokemon } from '@/types/pokemon';
 import { NamedAPIResource } from '@/types/pokeapi';
 import {
   extractIdFromUrl,
   formatPokemonName,
-  calculateTotalPages,
-  getPaginationOffset,
 } from '@/services/pokeapi/utils';
 import { mapPokeApiPokemonToPokemon } from '@/services/pokeapi/mappers';
 import { isNotFoundError, PokeApiError } from '@/services/pokeapi/client';
@@ -85,9 +84,6 @@ export function usePokedexListing() {
   const [searchParams, setSearchParams] = useSearchParams();
 
   // 1. Read & Normalize URL Parameters
-  const pageParam = parseInt(searchParams.get('page') || '1', 10);
-  const currentPage = Number.isInteger(pageParam) && pageParam > 0 ? pageParam : 1;
-
   const typeParam = searchParams.get('type') || 'all';
   const selectedType: PokemonTypeName | 'all' = isValidType(typeParam) ? typeParam : 'all';
 
@@ -100,6 +96,11 @@ export function usePokedexListing() {
   // 2. Local search input state with debounce
   const [searchInputValue, setSearchInputValue] = useState(urlSearch);
   const [debouncedSearch, setDebouncedSearch] = useState(urlSearch);
+  const [visibleTypeCount, setVisibleTypeCount] = useState(PAGE_SIZE);
+
+  useEffect(() => {
+    setVisibleTypeCount(PAGE_SIZE);
+  }, [selectedType, sortBy, debouncedSearch]);
 
   // Sync searchInputValue if URL search param changes from outside (e.g. back/forward navigation)
   useEffect(() => {
@@ -138,21 +139,12 @@ export function usePokedexListing() {
       setSearchParams((prev) => {
         const next = new URLSearchParams(prev);
 
-        if (updates.page !== undefined) {
-          if (updates.page <= 1) {
-            next.delete('page');
-          } else {
-            next.set('page', String(updates.page));
-          }
-        }
-
         if (updates.type !== undefined) {
           if (updates.type === 'all') {
             next.delete('type');
           } else {
             next.set('type', updates.type);
           }
-          // Reset pagination when filter condition changes
           next.delete('page');
         }
 
@@ -163,7 +155,6 @@ export function usePokedexListing() {
           } else {
             next.delete('search');
           }
-          // Reset pagination when search changes
           next.delete('page');
         }
 
@@ -215,10 +206,14 @@ export function usePokedexListing() {
     enabled: selectedType !== 'all',
   });
 
-  // 5. TanStack Query for Paginated General Listing
-  const standardOffset = getPaginationOffset(currentPage, PAGE_SIZE);
-  const listQuery = useQuery({
-    ...pokemonQueries.list({ limit: PAGE_SIZE, offset: standardOffset }),
+  // 5. TanStack Query for the standard catalogue, fetched as the user scrolls
+  const listQuery = useInfiniteQuery({
+    queryKey: [...pokemonKeys.lists(), 'infinite'],
+    queryFn: ({ pageParam, signal }) => pokemonService.getPokemonList({ limit: PAGE_SIZE, offset: pageParam }, signal),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage, pages) => lastPage.next ? pages.length * PAGE_SIZE : undefined,
+    staleTime: 1000 * 60 * 30,
+    retry: shouldRetry,
     enabled: !isSearching && selectedType === 'all',
   });
 
@@ -278,11 +273,11 @@ export function usePokedexListing() {
 
   // Scenario C: Standard listing
   const sortedStandardItems = useMemo(() => {
-    if (isSearching || selectedType !== 'all' || !listQuery.data?.results) {
+    if (isSearching || selectedType !== 'all' || !listQuery.data?.pages) {
       return [];
     }
 
-    const items = [...listQuery.data.results];
+    const items = listQuery.data.pages.flatMap((page) => page.results);
     if (sortBy === 'id-desc') {
       return items.sort((a, b) => {
         const idA = extractIdFromUrl(a.url) ?? 0;
@@ -294,19 +289,18 @@ export function usePokedexListing() {
       return items.sort((a, b) => a.name.localeCompare(b.name));
     }
     return items;
-  }, [isSearching, selectedType, listQuery.data?.results, sortBy]);
+  }, [isSearching, selectedType, listQuery.data?.pages, sortBy]);
 
-  // Determine current page's raw items
+  // Determine the items currently shown in the catalogue
   const currentPageItems: NamedAPIResource[] = useMemo(() => {
     if (isSearching) {
       return [];
     }
     if (selectedType !== 'all') {
-      const offset = getPaginationOffset(currentPage, PAGE_SIZE);
-      return sortedTypeItems.slice(offset, offset + PAGE_SIZE).map((p) => p.pokemon);
+      return sortedTypeItems.slice(0, visibleTypeCount).map((p) => p.pokemon);
     }
     return sortedStandardItems;
-  }, [isSearching, selectedType, currentPage, sortedTypeItems, sortedStandardItems]);
+  }, [isSearching, selectedType, visibleTypeCount, sortedTypeItems, sortedStandardItems]);
 
   // 7. Bounded Detail Queries for currently displayed page items
   const detailQueries = useQueries({
@@ -341,15 +335,21 @@ export function usePokedexListing() {
     if (selectedType !== 'all') {
       return typeQuery.data?.pokemon.length ?? 0;
     }
-    return listQuery.data?.count ?? 0;
-  }, [isSearching, searchResults.length, selectedType, typeQuery.data?.pokemon.length, listQuery.data?.count]);
+    return listQuery.data?.pages[0]?.count ?? 0;
+  }, [isSearching, searchResults.length, selectedType, typeQuery.data?.pokemon.length, listQuery.data?.pages]);
 
-  const totalPages = useMemo(() => {
-    if (isSearching) {
-      return searchResults.length > 0 ? 1 : 0;
+  const hasMore = !isSearching && (selectedType === 'all'
+    ? Boolean(listQuery.hasNextPage)
+    : currentPageItems.length < totalCount);
+  const isLoadingMore = selectedType === 'all' ? listQuery.isFetchingNextPage : false;
+  const loadMore = useCallback(() => {
+    if (isSearching || !hasMore || isLoadingMore) return;
+    if (selectedType === 'all') {
+      void listQuery.fetchNextPage();
+    } else {
+      setVisibleTypeCount((count) => count + PAGE_SIZE);
     }
-    return calculateTotalPages(totalCount, PAGE_SIZE);
-  }, [isSearching, searchResults.length, totalCount]);
+  }, [isSearching, hasMore, isLoadingMore, selectedType, listQuery]);
 
   // Loading States
   const isLoading = useMemo(() => {
@@ -413,12 +413,12 @@ export function usePokedexListing() {
     onTypeSelect: (type: PokemonTypeName | 'all') => updateParams({ type }),
     sortBy,
     onSortChange: (sort: SortOption) => updateParams({ sort }),
-    currentPage,
-    onPageChange: (page: number) => updateParams({ page }),
     pageSize: PAGE_SIZE,
     pokemonList: resolvedPokemonList,
     totalCount,
-    totalPages,
+    hasMore,
+    isLoadingMore,
+    onLoadMore: loadMore,
     isLoading,
     isSearching: searchQuery.isFetching,
     isError,

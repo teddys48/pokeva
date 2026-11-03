@@ -1,7 +1,7 @@
+import { useEffect, useRef } from 'react';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { PokemonSearchPreview } from '@/features/pokemon/PokemonSearchPreview';
 import { PokemonGrid } from '@/features/pokemon/PokemonGrid';
-import { PokemonPagination } from '@/features/pokemon/PokemonPagination';
 import { usePokedexListing } from '@/features/pokemon/usePokedexListing';
 import { useDocumentTitle } from '@/lib/useDocumentTitle';
 import { Sparkles, Layers, ShieldCheck, Database } from 'lucide-react';
@@ -17,12 +17,11 @@ export function HomePage() {
     onTypeSelect,
     sortBy,
     onSortChange,
-    currentPage,
-    onPageChange,
-    pageSize,
     pokemonList,
     totalCount,
-    totalPages,
+    hasMore,
+    isLoadingMore,
+    onLoadMore,
     isLoading,
     isSearching,
     isError,
@@ -30,6 +29,19 @@ export function HomePage() {
     onRetry,
     onResetFilters,
   } = usePokedexListing();
+  const loadMoreRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const target = loadMoreRef.current;
+    if (!target || !hasMore || isLoadingMore) return;
+
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) onLoadMore();
+    }, { rootMargin: '500px 0px' });
+
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, [hasMore, isLoadingMore, onLoadMore]);
 
   return (
     <div className="py-8 md:py-10 space-y-8">
@@ -119,15 +131,23 @@ export function HomePage() {
             onResetFilters={onResetFilters}
           />
 
-          {/* Real Pagination Controls */}
-          <PokemonPagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            totalCount={totalCount}
-            pageSize={pageSize}
-            onPageChange={onPageChange}
-            isLoading={isLoading}
-          />
+          {hasMore && pokemonList.length > 0 && (
+            <div ref={loadMoreRef} className="flex min-h-16 flex-col items-center justify-center gap-3 py-4" aria-live="polite">
+              <p className="text-xs text-muted-foreground">
+                Showing {pokemonList.length.toLocaleString()} of {totalCount.toLocaleString()} Pokémon
+              </p>
+              {isLoadingMore && <p className="text-sm text-muted-foreground">Loading more Pokémon…</p>}
+              {!isLoadingMore && (
+                <button
+                  type="button"
+                  onClick={onLoadMore}
+                  className="rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  Load more Pokémon
+                </button>
+              )}
+            </div>
+          )}
         </section>
       </PageContainer>
     </div>
