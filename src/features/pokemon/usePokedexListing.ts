@@ -1,11 +1,11 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { useInfiniteQuery, useQueries, useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, useQueries, useQuery, type InfiniteData } from '@tanstack/react-query';
 import { pokemonKeys, pokemonQueries, shouldRetry } from '@/services/pokeapi/queries';
 import { pokemonService } from '@/services/pokeapi/pokemonService';
 import { PokemonTypeName } from '@/styles/typeColors';
 import { Pokemon } from '@/types/pokemon';
-import { NamedAPIResource } from '@/types/pokeapi';
+import { NamedAPIResource, NamedAPIResourceList } from '@/types/pokeapi';
 import {
   extractIdFromUrl,
   formatPokemonName,
@@ -207,7 +207,13 @@ export function usePokedexListing() {
   });
 
   // 5. TanStack Query for the standard catalogue, fetched as the user scrolls
-  const listQuery = useInfiniteQuery({
+  const listQuery = useInfiniteQuery<
+    NamedAPIResourceList<NamedAPIResource>,
+    PokeApiError,
+    InfiniteData<NamedAPIResourceList<NamedAPIResource>>,
+    readonly unknown[],
+    number
+  >({
     queryKey: [...pokemonKeys.lists(), 'infinite'],
     queryFn: ({ pageParam, signal }) => pokemonService.getPokemonList({ limit: PAGE_SIZE, offset: pageParam }, signal),
     initialPageParam: 0,
